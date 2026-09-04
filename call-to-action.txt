@@ -1,0 +1,8 @@
+To get automatic reminder SMS texts for Trifecta BCA Pool League matches,
+send a text JOIN to (970) 423-7233.
+
+You can view the privacy policy here:
+https://raw.githubusercontent.com/rakshassa/trifecta-pool/main/privacy-policy.txt
+
+You can view the terms and conditions here:
+https://raw.githubusercontent.com/rakshassa/trifecta-pool/main/terms.txt
