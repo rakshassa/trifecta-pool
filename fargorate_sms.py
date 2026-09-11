@@ -53,13 +53,13 @@ TABLE_ASSIGNMENTS = {
 # Replace these examples with the real numbers.
 # Use numbers in the form: "+13035550007"
 TEAM_PHONES = {
-    "What Now?": [],
+    "What Now?": ["+13033964624"], # Dan Bergeron
     "Skyler's Team": [],
-    "Beers on the Beach": ["+12622279777"],
-    "Andrew's Team": [],
-    "Inglorious Racksters": [],
-    "The Replacements": [],
-    "Rack 'n' Roll": [],
+    "Beers on the Beach": ["+12622279777", "+17205204243", "+17202496704"], # Eli, Abhi, Alice
+    "Andrew's Team": ["+13039097055"], # Andrew Martinez
+    "Inglorious Racksters": ["+13037170395"], # Laura
+    "The Replacements": ["+17206412044"], # Jalonski
+    "Rack 'n' Roll": ["+16313123793"], # Rishi
     "Five Guys - 6 Holes": [],
 }
 
