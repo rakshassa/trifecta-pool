@@ -23,7 +23,7 @@ Dependencies:
 from datetime import date, datetime
 import requests
 from bs4 import BeautifulSoup
-
+from twilio_sms import TwilioSMS
 
 # ---------------------------------------------------------------------------
 # CONFIGURATION
@@ -51,15 +51,16 @@ TABLE_ASSIGNMENTS = {
 
 # Team name -> list of phone numbers.
 # Replace these examples with the real numbers.
+# Use numbers in the form: "+13035550007"
 TEAM_PHONES = {
-    "What Now?": ["+13035551234", "+13035555678"],
-    "Skyler's Team": ["+13035550001"],
-    "Beers on the Beach": ["+13035550002"],
-    "Andrew's Team": ["+13035550003"],
-    "Inglorious Racksters": ["+13035550004"],
-    "The Replacements": ["+13035550005"],
-    "Rack 'n' Roll": ["+13035550006"],
-    "Five Guys - 6 Holes": ["+13035550007"],
+    "What Now?": [],
+    "Skyler's Team": [],
+    "Beers on the Beach": ["+12622279777"],
+    "Andrew's Team": [],
+    "Inglorious Racksters": [],
+    "The Replacements": [],
+    "Rack 'n' Roll": [],
+    "Five Guys - 6 Holes": [],
 }
 
 
@@ -294,7 +295,9 @@ def find_team_phone_numbers(team_name):
 # ---------------------------------------------------------------------------
 # SMS
 # ---------------------------------------------------------------------------
-
+# Using a global variable - wrap this whole file into a class with this as
+# a class VAR.
+twilio = TwilioSMS()
 def send_sms(phone_number, message):
     """
     SMS stub.
@@ -314,6 +317,7 @@ def send_sms(phone_number, message):
     print(f"TO:      {phone_number}")
     print(f"MESSAGE: {message}")
     print("--------------------")
+    twilio.send_sms(phone_number, message)
 
 
 def build_sms_message(match, team_name):
