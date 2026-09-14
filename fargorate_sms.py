@@ -43,10 +43,10 @@ SCHEDULE_URL = (
 
 # Match number -> tables used by BOTH teams in that match.
 TABLE_ASSIGNMENTS = {
-    1: [7, 8, 9],
-    2: [10, 11, 12],
-    3: [13, 14, 15],
-    4: [16, 17, 18],
+    1: [7, 8],
+    2: [9, 10],
+    3: [11, 12],
+    4: [13, 14],
 }
 
 # Team name -> list of phone numbers.
