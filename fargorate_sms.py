@@ -60,7 +60,7 @@ TEAM_PHONES = {
     "Inglorious Racksters": ["+13037170395"], # Laura
     "The Replacements": ["+17206412044"], # Jalonski
     "Rack 'n' Roll": ["+16313123793"], # Rishi
-    "Five Guys - 6 Holes": [],
+    "Five Guys - 6 Holes": ["+13032416058"], # Brandon Georges
 }
 
 
