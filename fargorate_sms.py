@@ -175,17 +175,20 @@ def get_schedule(session, division_id):
                 continue
 
             date_text = subtitle.get_text(" ", strip=True)
-
+            
             try:
+                # FargoRate may include a match start time after the date.
+                date_only = date_text.split(" - ", 1)[0].strip()
+            
                 current_date = datetime.strptime(
-                    date_text,
+                    date_only,
                     "%A, %B %d, %Y",
                 ).date()
+            
             except ValueError as exc:
                 raise RuntimeError(
                     f"Could not parse FargoRate date: {date_text!r}"
                 ) from exc
-
             continue
 
         if current_date is None:
