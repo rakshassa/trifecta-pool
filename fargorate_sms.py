@@ -17,7 +17,7 @@ The SMS method is intentionally a stub. Replace send_sms() with Twilio,
 Textbelt, or another provider later.
 
 Dependencies:
-    pip install requests beautifulsoup4
+    pip install requests beautifulsoup4 tzdata
 """
 
 from datetime import datetime
