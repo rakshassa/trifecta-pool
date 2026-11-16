@@ -11,8 +11,11 @@ TWILIO_MESSAGING_SERVICE_SID = "fake"
 - Run local_env.py to setup the correct ENV vars and execute fargorate_sms.py
 
 ## Configuring target phone numbers/teams/leagues.
-- Edit constants in fargorate_sms.py
+- Edit the DIVISIONS dict in fargorate_sms.py (one entry per division: name, team phones, tables).
+- Choose the division with the DIVISION env var (`tuesday` default, or `sunday`).
 
 ## Github Automation
-- Uses a github workflow every tuesday at noon MST (not adjusted for DST)
+- Uses a github workflow (cron is UTC, not adjusted for DST):
+  - Tuesday league: every Tuesday 8:00 AM MST
+  - Sunday league: every Saturday 8:00 PM MST (only texts if the next Sunday match is within 1 day)
 - needs a small commit every 60 days else it gets cancelled

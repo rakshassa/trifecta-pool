@@ -4,12 +4,12 @@ FargoRate League Schedule -> Table Assignment -> SMS Stub
 
 This script:
 1. GETs the FargoRate league page.
-2. Finds TARGET_DIVISION_NAME in #division-list.
+2. Finds the DIVISION's name (see DIVISIONS) in #division-list.
 3. Extracts its divisionId.
 4. POSTs GenerateDivisionScheduleReport with groupBy=date.
 5. Finds the next scheduled match date on/after today.
 6. Numbers the matches in the order FargoRate presents them.
-7. Assigns tables using TABLE_ASSIGNMENTS.
+7. Assigns tables using the division's table_assignments.
 8. Looks up each team's phone numbers.
 9. Calls send_sms() for every phone number.
 
@@ -20,7 +20,9 @@ Dependencies:
     pip install requests beautifulsoup4
 """
 
-from datetime import date, datetime
+from datetime import datetime
+import os
+from zoneinfo import ZoneInfo
 import requests
 from bs4 import BeautifulSoup
 from twilio_sms import TwilioSMS
@@ -34,34 +36,74 @@ LEAGUE_URL = (
     "?leagueId=044d186c-8b01-4001-a00a-b30e014f4ede"
 )
 
-TARGET_DIVISION_NAME = "2026 Fall Tuesdays in Paradise"
-
 SCHEDULE_URL = (
     "https://lms.fargorate.com/PublicReport/"
     "GenerateDivisionScheduleReport"
 )
 
-# Match number -> tables used by BOTH teams in that match.
-TABLE_ASSIGNMENTS = {
-    1: [7, 8],
-    2: [9, 10],
-    3: [11, 12],
-    4: [13, 14],
+LOCAL_TIMEZONE = ZoneInfo("America/Denver")
+
+# Selected with the DIVISION environment variable (default: tuesday).
+# - table_assignments: match number -> tables used by BOTH teams.
+# - team_phones: team name -> list of phone numbers ("+13035550007").
+# - time_note: optional sentence appended to each text.
+# - max_days_ahead: only text if the next match is within this many days
+#   (None = always text about the next match, however far away).
+DIVISIONS = {
+    "tuesday": {
+        "name": "2026 Fall Tuesdays in Paradise",
+        "table_assignments": {
+            1: [7, 8],
+            2: [9, 10],
+            3: [11, 12],
+            4: [13, 14],
+        },
+        "team_phones": {
+            "What Now?": ["+13033964624"], # Dan Bergeron
+            "Skyler's Team": [],
+            "Beers on the Beach": ["+12622279777", "+17205204243", "+17202496704"], # Eli, Abhi, Alice
+            "Andrew's Team": ["+13039097055"], # Andrew Martinez
+            "Inglorious Racksters": ["+13037170395"], # Laura
+            "The Replacements": ["+17206412044"], # Jalonski
+            "Rack 'n' Roll": ["+16313123793"], # Rishi
+            "Five Guys - 6 Holes": ["+13032416058"], # Brandon Georges
+        },
+        "time_note": "",
+        "max_days_ahead": None,
+    },
+    "sunday": {
+        "name": "2026 Fall Sunday in Paradise",
+        "table_assignments": {
+            1: [7, 8],
+            2: [9, 10],
+            3: [11, 12],
+        },
+        "team_phones": {
+            "Ball Polishers": ["+17202496704", "+13035905613", "+13036417862"], # Alice, Brandon, JT
+            "Cue the Drama": ["+12622279777", "+19854455955"], # Elijah, Bree
+            "Heavy W8's": ["+12629939737", "+15056601057"], # Isaiah, Rob
+            "Hole Rippers": ["+13193306421", "+13176267553"], # Brett, Greg
+            "Rack Wreckers": ["+14092218235"], # Tom
+            "Wrong Hole": ["+12253263682"], # Justin
+        },
+        "time_note": " Match starts at noon MST.",
+        "max_days_ahead": 1,
+    },
 }
 
-# Team name -> list of phone numbers.
-# Replace these examples with the real numbers.
-# Use numbers in the form: "+13035550007"
-TEAM_PHONES = {
-    "What Now?": ["+13033964624"], # Dan Bergeron
-    "Skyler's Team": [],
-    "Beers on the Beach": ["+12622279777", "+17205204243", "+17202496704"], # Eli, Abhi, Alice
-    "Andrew's Team": ["+13039097055"], # Andrew Martinez
-    "Inglorious Racksters": ["+13037170395"], # Laura
-    "The Replacements": ["+17206412044"], # Jalonski
-    "Rack 'n' Roll": ["+16313123793"], # Rishi
-    "Five Guys - 6 Holes": ["+13032416058"], # Brandon Georges
-}
+DEFAULT_DIVISION_KEY = "tuesday"
+
+
+def get_division_config():
+    """Return the config for the division named by the DIVISION env var."""
+    key = os.environ.get("DIVISION", DEFAULT_DIVISION_KEY).strip().lower()
+
+    if key not in DIVISIONS:
+        raise RuntimeError(
+            f"Unknown DIVISION {key!r}. Valid: {', '.join(DIVISIONS)}"
+        )
+
+    return DIVISIONS[key]
 
 
 # ---------------------------------------------------------------------------
@@ -239,7 +281,7 @@ def get_next_matches(schedule, today=None):
     """
 
     if today is None:
-        today = date.today()
+        today = datetime.now(LOCAL_TIMEZONE).date()
 
     future_dates = sorted({
         match["date"]
@@ -261,7 +303,7 @@ def get_next_matches(schedule, today=None):
     return next_date, matches
 
 
-def assign_tables(matches):
+def assign_tables(matches, table_assignments):
     """
     Assign table groups to matches based on match number.
 
@@ -271,28 +313,28 @@ def assign_tables(matches):
     assigned = []
 
     for match_number, match in enumerate(matches, start=1):
-        if match_number not in TABLE_ASSIGNMENTS:
+        if match_number not in table_assignments:
             raise RuntimeError(
                 f"No table assignment exists for match "
-                f"#{match_number}. Add it to TABLE_ASSIGNMENTS."
+                f"#{match_number}. Add it to table_assignments."
             )
 
         match["match_number"] = match_number
-        match["tables"] = TABLE_ASSIGNMENTS[match_number]
+        match["tables"] = table_assignments[match_number]
         assigned.append(match)
 
     return assigned
 
 
-def find_team_phone_numbers(team_name):
+def find_team_phone_numbers(team_name, team_phones):
     """
     Return all phone numbers configured for a team.
 
     Team names are matched exactly, because FargoRate's displayed team
-    names are the identifiers used in TEAM_PHONES.
+    names are the identifiers used in team_phones.
     """
 
-    return TEAM_PHONES.get(team_name, [])
+    return team_phones.get(team_name, [])
 
 
 # ---------------------------------------------------------------------------
@@ -323,7 +365,7 @@ def send_sms(phone_number, message):
     twilio.send_sms(phone_number, message)
 
 
-def build_sms_message(match, team_name):
+def build_sms_message(match, team_name, time_note=""):
     """Create the text message for one team."""
 
     tables = ", ".join(str(table) for table in match["tables"])
@@ -339,6 +381,7 @@ def build_sms_message(match, team_name):
         f"{match['date']:%A, %B} {match['date'].day} "
         f"vs {opponent}. "
         f"Your tables are {tables}."
+        f"{time_note}"
     )
 
 
@@ -346,28 +389,59 @@ def build_sms_message(match, team_name):
 # MAIN
 # ---------------------------------------------------------------------------
 
+def is_within_days_ahead(next_date, max_days_ahead, today=None):
+    """True if the next match is soon enough to text about."""
+
+    if max_days_ahead is None:
+        return True
+
+    if today is None:
+        today = datetime.now(LOCAL_TIMEZONE).date()
+
+    return (next_date - today).days <= max_days_ahead
+
+
+def notify_match(match, division):
+    """Print match details and text every configured player on both teams."""
+
+    print()
+    print(
+        f"Match #{match['match_number']}: "
+        f"{match['home']} vs {match['away']}"
+    )
+    print(f"Location: {match['location']}")
+    print(f"Tables: {match['tables']}")
+
+    for team_name in (match["home"], match["away"]):
+        phone_numbers = find_team_phone_numbers(
+            team_name,
+            division["team_phones"],
+        )
+
+        if not phone_numbers:
+            print(f"WARNING: No phone numbers configured for '{team_name}'.")
+            continue
+
+        message = build_sms_message(match, team_name, division["time_note"])
+
+        for phone_number in phone_numbers:
+            send_sms(phone_number, message)
+
+
 def main():
+    division = get_division_config()
     session = create_session()
 
     print(f"League URL: {LEAGUE_URL}")
-    print(f"Target division: {TARGET_DIVISION_NAME}")
+    print(f"Target division: {division['name']}")
     print()
 
-    # 1. Discover division ID from the league page.
-    division_id = get_division_id(
-        session,
-        LEAGUE_URL,
-        TARGET_DIVISION_NAME,
-    )
-
+    division_id = get_division_id(session, LEAGUE_URL, division["name"])
     print(f"Division ID: {division_id}")
 
-    # 2. Get the schedule for that division.
     schedule = get_schedule(session, division_id)
-
     print(f"Parsed {len(schedule)} scheduled matches.")
 
-    # 3. Find the next match date.
     next_date, matches = get_next_matches(schedule)
 
     if next_date is None:
@@ -380,33 +454,14 @@ def main():
         f"{next_date:%A, %B} {next_date.day}, {next_date:%Y}"
     )
 
-    # 4. Assign tables according to match order.
-    matches = assign_tables(matches)
+    if not is_within_days_ahead(next_date, division["max_days_ahead"]):
+        print("Next match is too far away; not sending texts.")
+        return
 
-    # 5. Process each match and notify both teams.
+    matches = assign_tables(matches, division["table_assignments"])
+
     for match in matches:
-        print()
-        print(
-            f"Match #{match['match_number']}: "
-            f"{match['home']} vs {match['away']}"
-        )
-        print(f"Location: {match['location']}")
-        print(f"Tables: {match['tables']}")
-
-        for team_name in (match["home"], match["away"]):
-            phone_numbers = find_team_phone_numbers(team_name)
-
-            if not phone_numbers:
-                print(
-                    f"WARNING: No phone numbers configured for "
-                    f"'{team_name}'."
-                )
-                continue
-
-            message = build_sms_message(match, team_name)
-
-            for phone_number in phone_numbers:
-                send_sms(phone_number, message)
+        notify_match(match, division)
 
 
 if __name__ == "__main__":
