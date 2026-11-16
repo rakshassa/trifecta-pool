@@ -69,7 +69,7 @@ DIVISIONS = {
             "Five Guys - 6 Holes": ["+13032416058"], # Brandon Georges
         },
         "time_note": "",
-        "max_days_ahead": None,
+        "max_days_ahead": 2,
     },
     "sunday": {
         "name": "2026 Fall Sunday in Paradise",
@@ -87,7 +87,7 @@ DIVISIONS = {
             "Wrong Hole": ["+12253263682"], # Justin
         },
         "time_note": " Match starts at noon MST.",
-        "max_days_ahead": 1,
+        "max_days_ahead": 2,
     },
 }
 
