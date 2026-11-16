@@ -340,29 +340,39 @@ def find_team_phone_numbers(team_name, team_phones):
 # ---------------------------------------------------------------------------
 # SMS
 # ---------------------------------------------------------------------------
-# Using a global variable - wrap this whole file into a class with this as
-# a class VAR.
-twilio = TwilioSMS()
+_twilio = None
+
+
+def is_dry_run():
+    """True if the DRY_RUN env var is set to a truthy value."""
+    return os.environ.get("DRY_RUN", "").strip().lower() in (
+        "1", "true", "yes", "on",
+    )
+
+
+def get_twilio():
+    """Create the Twilio client on first use (not needed for dry runs)."""
+    global _twilio
+
+    if _twilio is None:
+        _twilio = TwilioSMS()
+
+    return _twilio
+
+
 def send_sms(phone_number, message):
-    """
-    SMS stub.
-
-    Replace this function with the actual SMS provider later.
-
-    Example future implementation:
-        Twilio client.messages.create(
-            body=message,
-            from_=TWILIO_FROM_NUMBER,
-            to=phone_number,
-        )
-    """
+    """Print the SMS, and send it through Twilio unless DRY_RUN is set."""
 
     print()
-    print("----- SMS STUB -----")
+    print("----- SMS DRY RUN (not sent) -----" if is_dry_run() else "----- SMS -----")
     print(f"TO:      {phone_number}")
     print(f"MESSAGE: {message}")
     print("--------------------")
-    twilio.send_sms(phone_number, message)
+
+    if is_dry_run():
+        return
+
+    get_twilio().send_sms(phone_number, message)
 
 
 def build_sms_message(match, team_name, time_note=""):

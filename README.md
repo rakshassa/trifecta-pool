@@ -8,6 +8,7 @@ TWILIO_API_KEY = "fake"
 TWILIO_API_KEY_SECRET = "fake"
 TWILIO_MESSAGING_SERVICE_SID = "fake"
 
+- Set DRY_RUN=1 to print the texts without sending them (no Twilio credentials needed when running fargorate_sms.py directly).
 - Run local_env.py to setup the correct ENV vars and execute fargorate_sms.py
 
 ## Configuring target phone numbers/teams/leagues.
