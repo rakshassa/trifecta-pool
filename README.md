@@ -15,6 +15,9 @@ TWILIO_MESSAGING_SERVICE_SID = "fake"
 - Edit the DIVISIONS dict in fargorate_sms.py (one entry per division: name, team phones, tables).
 - Choose the division with the DIVISION env var (`tuesday` default, or `sunday`).
 
+## Payouts (manual)
+- `python payouts.py` calculates payouts for "2026 Fall Tuesdays in Paradise": team payout by standings placement (PAYOUT_BY_PLACE), split between players by "Player Points". Prints a per-team breakdown, then a per-person total. Needs no Twilio credentials.
+
 ## Github Automation
 - Uses a github workflow (cron is UTC, not adjusted for DST):
   - Tuesday league: every Tuesday 8:00 AM MST
