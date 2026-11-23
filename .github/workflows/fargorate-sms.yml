@@ -4,7 +4,7 @@ on:
   schedule:
     # GitHub cron is UTC only. MST = UTC-7 (not adjusted for DST).
     - cron: '0 15 * * 2'   # 8:00 AM MST, every Tuesday (Tuesday league)
-    - cron: '0 3 * * 0'    # 8:00 PM MST every Saturday (Sunday league)
+    - cron: '0 19 * * 6'   # 12:00 PM MST every Saturday (Sunday league)
   workflow_dispatch:        # lets you trigger it manually to test
     inputs:
       division:
@@ -32,8 +32,8 @@ jobs:
 
       - name: Run FargoRate SMS script
         env:
-          # Scheduled runs: Sunday-league cron fires at 03:00 UTC, otherwise Tuesday.
-          DIVISION: ${{ github.event.inputs.division || (github.event.schedule == '0 3 * * 0' && 'sunday' || 'tuesday') }}
+          # Scheduled runs: Sunday-league cron fires at 19:00 UTC, otherwise Tuesday.
+          DIVISION: ${{ github.event.inputs.division || (github.event.schedule == '0 19 * * 6' && 'sunday' || 'tuesday') }}
           TWILIO_MESSAGING_SERVICE_SID: ${{ secrets.TWILIO_MESSAGING_SERVICE_SID }}
           TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
           TWILIO_API_KEY: ${{ secrets.TWILIO_API_KEY }}
