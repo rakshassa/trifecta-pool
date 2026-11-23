@@ -83,7 +83,7 @@ DIVISIONS = {
             "Cue the Drama": ["+12622279777", "+19854455955"], # Elijah, Bree
             "Heavy W8's": ["+12629939737", "+15056601057"], # Isaiah, Rob
             "Hole Rippers": ["+13193306421", "+13176267553"], # Brett, Greg
-            "Rack Wreckers": ["+14092218235", "+13035504366"], # Tom, Scott
+            "Rack Wreckers": ["+14092218235", "+13035504366", "+17203981566"], # Tom, Scott, Brandon
             "Wrong Hole": ["+12253263682"], # Justin
         },
         "time_note": " Match starts at noon MST.",
